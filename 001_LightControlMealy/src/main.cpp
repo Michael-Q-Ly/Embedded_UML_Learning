@@ -3,6 +3,7 @@
  *  Date: December 5, 2021
  *  Description: Change LED brightness with PWM using a Mealy Machine.
  *  Target: Arduino Uno R3
+ *  Materials: Breadboard, Jumper wires, 220 Ohm Resistor, USB B cable
  */
 
 /*
@@ -16,42 +17,149 @@
 
 #include <Arduino.h>
 
-byte const LED = 9 ;
+// byte const LED = 9 ;
+#define PIN_LED             9
+#define BAUD_RATE           115200
 
-enum Day_of_week {
-    SUNDAY ,
-    MONDAY ,
-    TUESDAY
-} Day_of_week_t ;
+#define LIGHT_BRIGHT_DIM    25
+#define LIGHT_BRIGHT_MED    85
+#define LIGHT_BRIGHT_FULL   255
+#define LIGHT_BRIGHT_OFF    0
 
- enum {
-    RAINING = 30 ,
-    CLOUDY ,
-    SUNNY
-} ;
+typedef enum {
+    ON ,
+    OFF
+} Event_t ;
 
-typedef enum {  /* No Tag */
-    MEETING ,
-    CODING ,
-    TRAVELLING ,
-    READING ,
-    EATING
-} Activity_t ;  /* typedef alias name */
+typedef enum {
+    LIGHT_OFF ,
+    LIGHT_DIM ,
+    LIGHT_MEDIUM ,
+    LIGHT_FULL
+} Light_State_t ;
+
+Light_State_t current_state ;
+
+void light_state_machine( uint8_t event )  ;
+void light_change_intensity( uint8_t pin, uint8_t intensity ) ;
+
 
 void setup() {
-    enum Day_of_week today ;
-    int climate ;
-    Activity_t activity ;
-
-    today = MONDAY ;
-    climate = SUNNY ;
-    activity = MEETING ;
-
-    (void)( climate ) ;
-    (void)( today ) ;
-    (void)( activity ) ;
+    // Set the baud rate to 115200 bits per second
+    Serial.begin( BAUD_RATE ) ;
+    // Initialize the current state:
+    current_state = LIGHT_OFF ;
+    // Menu
+    Serial.println( "Light control application" ) ;
+    Serial.println( "-------------------------" ) ;
+    Serial.println( "Send 'x' or 'o'" ) ;
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+    uint8_t event ;
+
+    if ( Serial.available() > 0 ) {
+
+        event = Serial.read() ;
+
+        if ( event == 'o' ) {
+            light_state_machine( ON ) ;
+        }
+        else if ( event == 'x' ) {
+            light_state_machine( OFF ) ;
+        }
+
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////    Function Definitions    ////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
+void light_state_machine( uint8_t event ) {
+    /*
+     * Implementation of State Machine Handler
+     *      Nested Switch           <==== Use this for now
+     *      State Table Approach
+     *      State Handler Approach
+     */
+
+    switch ( current_state ) {
+        
+        case LIGHT_OFF : {
+
+            switch ( event ) {
+                case ON : {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_DIM ) ;
+                    current_state = LIGHT_DIM ;
+                    break ;
+                }
+            }
+
+            break ;
+        }   /* LIGHT_OFF */
+
+
+        case LIGHT_DIM : {
+
+            switch ( event ) {
+                case ON : {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_MED ) ;
+                    current_state = LIGHT_MEDIUM ;
+                    break ;
+                }
+                case OFF: {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_OFF ) ;
+                    current_state = LIGHT_OFF ;
+                    break ;
+                }
+            }
+
+            break ;
+        }   /* LIGHT_DIM */
+
+
+        case LIGHT_MEDIUM : {
+            switch ( event ) {
+
+                case ON : {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_FULL ) ;
+                    current_state = LIGHT_FULL ;
+                    break ;
+                }
+                case OFF: {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_OFF ) ;
+                    current_state = LIGHT_OFF ;
+                    break ;
+                }
+            }
+
+            break ;
+        }   /* LIGHT_MEDIUM */
+        
+
+        case LIGHT_FULL : {
+
+            switch ( event ) {
+                case ON : {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_DIM ) ;
+                    current_state = LIGHT_DIM ;
+                    break ;
+                }
+                case OFF: {
+                    light_change_intensity( PIN_LED, LIGHT_BRIGHT_OFF ) ;
+                    current_state = LIGHT_OFF ;
+                    break ;
+                }
+            }
+
+            break ;
+        }   /* LIGHT_FULL */
+
+    }
+
+}
+////////////////////////////////////////////////////////////////////////////////////
+
+void light_change_intensity( uint8_t pin, uint8_t intensity ) {
+    analogWrite( pin, intensity ) ;
 }
