@@ -75,6 +75,7 @@ void loop() {
 ////////////////////////////    Function Definitions    ////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
+/* Determines what events will make one state change to another */
 void light_state_machine( uint8_t event ) {
     /*
      * Implementation of State Machine Handler
@@ -160,6 +161,7 @@ void light_state_machine( uint8_t event ) {
 }
 ////////////////////////////////////////////////////////////////////////////////////
 
+/* Changes the PWM of the LED */
 void light_change_intensity( uint8_t pin, uint8_t intensity ) {
     analogWrite( pin, intensity ) ;
 }
