@@ -16,8 +16,40 @@
 
 #include <Arduino.h>
 
+byte const LED = 9 ;
+
+enum Day_of_week {
+    SUNDAY ,
+    MONDAY ,
+    TUESDAY
+} Day_of_week_t ;
+
+ enum {
+    RAINING = 30 ,
+    CLOUDY ,
+    SUNNY
+} ;
+
+typedef enum {  /* No Tag */
+    MEETING ,
+    CODING ,
+    TRAVELLING ,
+    READING ,
+    EATING
+} Activity_t ;  /* typedef alias name */
+
 void setup() {
-  // put your setup code here, to run once:
+    enum Day_of_week today ;
+    int climate ;
+    Activity_t activity ;
+
+    today = MONDAY ;
+    climate = SUNNY ;
+    activity = MEETING ;
+
+    (void)( climate ) ;
+    (void)( today ) ;
+    (void)( activity ) ;
 }
 
 void loop() {
