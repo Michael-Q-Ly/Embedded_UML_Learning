@@ -10,8 +10,17 @@ Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) {
         case IDLE : {
             return protimer_state_handler_IDLE( mobj, e ) ;
         }
-        case TIME_SET :{
+        case TIME_SET : {
             return protimer_state_handler_TIME_SET( mobj, e ) ;   
+        }
+        case PAUSE : {
+            return protimer_state_handler_PAUSE( mobj, e ) ;
+        }
+        case COUNTDOWN : {
+            return protimer_state_handler_COUNTDOWN( mobj, e ) ;   
+        }
+        case STAT : {
+            return protimer_state_handler_STAT( mobj, e ) ;   
         }
         
         default :
@@ -32,7 +41,7 @@ Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
             return EVENT_HANDLED ;
         }
         case INC_TIME : {
-            mobj -> current_time += 60 ;
+            mobj -> current_time += ( 1*SEC2Min_Conversion_Factor ) ;
             mobj -> active_state = TIME_SET ;
             return EVENT_TRANSITION ;
         }
@@ -60,6 +69,43 @@ Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
 
 
 Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
+    switch ( e -> sig ) {
+        case ENTRY : {
+            display_time( mobj -> current_time ) ;
+            return EVENT_HANDLED ;
+        }
+        case EXIT : {
+            display_clear() ;
+            return EVENT_HANDLED ;
+        }
+        case INC_TIME : {
+            mobj -> current_time += ( 1*SEC2Min_Conversion_Factor ) ;
+            display_time( mobj -> current_time ) ;
+            return EVENT_HANDLED ;
+        }
+        case DEC_TIME : {
+            if ( mobj -> current_time >= ( 1*SEC2Min_Conversion_Factor ) ) {
+                mobj -> current_time -= ( 1*SEC2Min_Conversion_Factor ) ;
+                display_time( mobj -> current_time ) ;
+                return EVENT_HANDLED ;
+            }
+            else {
+                return EVENT_IGNORED ;
+            }
+        }
+        case START_PAUSE : {
+            if ( mobj -> current_time >= ( 1*SEC2Min_Conversion_Factor ) ) {
+                return EVENT_TRANSITION ;   // Transition to COUNTDOWN
+            }
+            else {
+                return EVENT_IGNORED ;
+            }
+        }
+        case ABRT : {
+            return EVENT_TRANSITION ;       // Go back to IDLE
+        }
+
+    }
     return EVENT_IGNORED ;
 }
 Event_Status_t protimer_state_handler_PAUSE( Protimer_t *mobj, Event_t *e ) {

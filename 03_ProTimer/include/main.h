@@ -2,6 +2,7 @@
 #define MAIN_H_
 
 #include <Arduino.h>
+uint8_t const SEC2Min_Conversion_Factor = 60 ;
 
 /* Signals of the application */
 typedef enum {
