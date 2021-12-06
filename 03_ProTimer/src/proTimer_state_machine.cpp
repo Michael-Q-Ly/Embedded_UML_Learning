@@ -60,5 +60,27 @@ Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
 
 
 Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
+    return EVENT_IGNORED ;
+}
+Event_Status_t protimer_state_handler_PAUSE( Protimer_t *mobj, Event_t *e ) {
+    return EVENT_IGNORED ;
+}
+Event_Status_t protimer_state_handler_COUNTDOWN( Protimer_t *mobj, Event_t *e ) {
+    return EVENT_IGNORED ;
+}
+Event_Status_t protimer_state_handler_STAT( Protimer_t *mobj, Event_t *e ) {
+    return EVENT_IGNORED ;
+}
+
+void display_time( int time ) {
+
+}
+extern void display_message( String message ) {
+
+}
+void display_clear( void ) {
+
+}
+void do_beep( void ) {
 
 }

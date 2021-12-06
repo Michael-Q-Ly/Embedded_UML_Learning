@@ -59,8 +59,17 @@ typedef enum {
 /* Function prototypes */
 extern void proTimer_init( Protimer_t *mobj ) ;
 extern Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) ;
-extern Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) ;
-extern Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) ;
+// States of FSM
+extern Event_Status_t protimer_state_handler_IDLE       ( Protimer_t *mobj, Event_t *e ) ;
+extern Event_Status_t protimer_state_handler_TIME_SET   ( Protimer_t *mobj, Event_t *e ) ;
+extern Event_Status_t protimer_state_handler_PAUSE      ( Protimer_t *mobj, Event_t *e ) ;
+extern Event_Status_t protimer_state_handler_COUNTDOWN  ( Protimer_t *mobj, Event_t *e ) ;
+extern Event_Status_t protimer_state_handler_STAT       ( Protimer_t *mobj, Event_t *e ) ;
+// Other functions
+extern void display_time( int time ) ;              // TODO: Change parameters later
+extern void display_message( String message ) ;     // TODO: Change parameters later
+extern void display_clear( void ) ;
+extern void do_beep( void ) ;
 
 
 #endif  /* MAIN_H_ */
