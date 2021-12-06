@@ -48,7 +48,19 @@ typedef struct {
     uint8_t ss ;
 } Protimer_Tick_Event_t ;
 
+/* For event handling */
+typedef enum {
+    EVENT_HANDLED ,
+    EVENT_IGNORED ,
+    EVENT_TRANSITION
+} Event_Status_t ;
+
+
+/* Function prototypes */
 extern void proTimer_init( Protimer_t *mobj ) ;
+extern Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) ;
+extern Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) ;
+extern Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) ;
 
 
 #endif  /* MAIN_H_ */
