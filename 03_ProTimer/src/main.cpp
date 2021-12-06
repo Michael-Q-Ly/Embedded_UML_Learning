@@ -1,7 +1,10 @@
 #include "main.h"
 
+/* Main application object */
+static Protimer_t proTimer ;
+
 void setup() {
-  // put your setup code here, to run once:
+    proTimer_init( &proTimer ) ;
 }
 
 void loop() {

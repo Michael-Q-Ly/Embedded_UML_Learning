@@ -48,4 +48,7 @@ typedef struct {
     uint8_t ss ;
 } Protimer_Tick_Event_t ;
 
+extern void proTimer_init( Protimer_t *mobj ) ;
+
+
 #endif  /* MAIN_H_ */
