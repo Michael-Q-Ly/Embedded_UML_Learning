@@ -1,4 +1,5 @@
 #include "main.h"
+#include "lcd.h"
 /* Main application object */
 static Protimer_t proTimer ;
 
@@ -10,7 +11,8 @@ typedef enum {
 
 static void proTimer_event_dispatcher( Protimer_t *const mobj, Event_t const *const e) ;
 static uint8_t process_button_pad_value( uint8_t btn_pad_value ) ;
-void display_init( void ) ;
+static void display_init( void ) ;
+
 void setup() {
     // Set up the serial monitor by setting the baud rate to 115200 bits per second
     Serial.begin( BAUD_RATE ) ;
@@ -150,6 +152,12 @@ static uint8_t process_button_pad_value( uint8_t btn_pad_value ) {
     return 0 ;
 }
 
-void display_init( void ) {
-
+/* Initialize the 1602 LCD screen */
+static void display_init( void ) {
+    lcd_begin( 16, 2 ) ;
+    lcd_clear() ;
+    lcd_move_cursor_L_to_R() ;
+    lcd_set_cursor( 0, 0 ) ;
+    lcd_no_auto_scroll() ;
+    lcd_cursor_off() ;
 }

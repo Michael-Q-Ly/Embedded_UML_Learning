@@ -1,4 +1,5 @@
 #include "main.h"
+#include "lcd.h"
 
 // Prototypes of state handlers
 static Event_Status_t protimer_state_handler_IDLE       ( Protimer_t *const mobj, Event_t const *const e ) ;        // Make mobj a constant pointer with changeable data,
@@ -7,8 +8,8 @@ static Event_Status_t protimer_state_handler_PAUSE      ( Protimer_t *const mobj
 static Event_Status_t protimer_state_handler_COUNTDOWN  ( Protimer_t *const mobj, Event_t const *const e ) ;
 static Event_Status_t protimer_state_handler_STAT       ( Protimer_t *const mobj, Event_t const *const e ) ;
 // Prototypes of helper functions
-static void display_time                                ( uint32_t time ) ;             // TODO: Change parameters later
-static void display_message                             ( String message ) ;            // TODO: Change parameters later
+static void display_time                                ( uint32_t time ) ;
+static void display_message                             ( String message, uint8_t col, uint8_t row ) ;
 static void display_clear                               ( void ) ;
 static void do_beep                                     ( void ) ;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,8 +48,9 @@ static Event_Status_t protimer_state_handler_IDLE( Protimer_t *const mobj, Event
         case ENTRY : {
             mobj -> current_time = 0 ;
             mobj -> elapsed_time = 0 ;
-            display_time( 0 ) ;                 // TODO: implement display time function
-            display_message( "Set Time" ) ;     // TODO: implement message function
+            display_time( 0 ) ;
+            display_message( "Set", 0, 0 ) ;
+            display_message( "time", 0, 1 ) ;
             return EVENT_HANDLED ;
         }
         case EXIT : {
@@ -132,7 +134,7 @@ static Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *const mobj, E
 static Event_Status_t protimer_state_handler_PAUSE( Protimer_t *const mobj, Event_t const *const e ) {
     switch ( e -> sig ) {
         case ENTRY: {
-            display_message( "Paused" ) ;
+            display_message( "Paused", 5, 1 ) ;
             return EVENT_HANDLED ;
         }
         case EXIT : {
@@ -209,7 +211,7 @@ static Event_Status_t protimer_state_handler_STAT( Protimer_t *const mobj, Event
     switch( e -> sig ) {
         case ENTRY : {
             display_time( mobj -> productive_time ) ;
-            display_message( "Productive Time" ) ;
+            display_message( "Productive Time", 1, 1 ) ;
             return EVENT_HANDLED ;
         }
         case EXIT : {
@@ -231,17 +233,100 @@ static Event_Status_t protimer_state_handler_STAT( Protimer_t *const mobj, Event
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void display_time( uint32_t time ) {
+    uint16_t min ;
+    uint16_t sec ;
 
+    uint8_t minDigits ;
+    uint8_t secDigits ;
+
+    min = time / SEC2Min_Conversion_Factor ;
+    sec = time % SEC2Min_Conversion_Factor ;
+
+    minDigits = check_minute_digits( min ) ;
+    secDigits = check_second_digits( sec ) ;
+    
+    lcd_set_cursor( 0, 5 ) ;
+
+    switch ( minDigits ) {
+        case ONES : {
+            lcd_print_number( 0 ) ;
+            lcd_print_number( 0 ) ;
+            lcd_print_number( min ) ;
+        }
+        case TENS: {
+            lcd_print_number( 0 ) ;
+            lcd_print_number( min ) ;
+        }
+        case HUNDREDS : {
+            lcd_print_number( min ) ;
+        }
+        // Add default??
+    }   /* switch( minDigits ) */
+
+    lcd_print_char( ':' ) ;
+
+    switch ( secDigits ) {
+        case ONES : {
+            lcd_print_number( 0 ) ;
+            lcd_print_number( sec ) ;
+        }
+        case TENS: {
+            lcd_print_number( sec ) ;
+        }
+        // Add default??
+    }   /* switch( secDigits ) */
+
+    #ifdef later
+    lcd_print_number( min ) ;
+    lcd_print_char( ':' ) ;
+    lcd_print_number( sec ) ;
+    #endif /* later */
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void display_message( String message ) {
+uint16_t check_minute_digits( uint16_t min ) {
+    typedef enum {
+        ONES ,
+        TENS ,
+        HUNDREDS
+    } Place_t ;
 
+    // Check placement of minutes
+    if ( min < 10 ) {
+        return ONES ;
+    }
+    else if ( min < 100 ) {
+        return TENS ;
+    }
+    else {
+        return HUNDREDS ;
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint16_t check_second_digits( uint16_t sec ) {
+    typedef enum {
+        ONES ,
+        TENS ,
+    } Place_t ;
+
+    if ( sec < 10 ) {
+        return ONES ;
+    }
+    else {
+        return TENS ;
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void display_message( String message, uint8_t col, uint8_t row ) {
+    lcd_set_cursor( row, col ) ;
+    lcd_print_string( message ) ;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void display_clear( void ) {
-
+    lcd_clear() ;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
