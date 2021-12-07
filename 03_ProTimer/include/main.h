@@ -57,7 +57,7 @@ typedef enum {
 } Event_Status_t ;
 
 /* Function prototypes */
-extern void proTimer_init( Protimer_t *const mobj ) ;
-extern Event_Status_t proTimer_state_machine( Protimer_t *const mobj, Event_t const *const e ) ;                // Pointer cannot be modified, but data can be
+extern void proTimer_init                       ( Protimer_t *const mobj ) ;
+extern Event_Status_t proTimer_state_machine    ( Protimer_t *const mobj, Event_t const *const e ) ;                // Pointer cannot be modified, but data can be
 
 #endif  /* MAIN_H_ */
