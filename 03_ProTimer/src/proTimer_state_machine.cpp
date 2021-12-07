@@ -233,89 +233,16 @@ static Event_Status_t protimer_state_handler_STAT( Protimer_t *const mobj, Event
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void display_time( uint32_t time ) {
-    uint16_t min ;
-    uint16_t sec ;
+    char buf[7] ;
+    String time_msg ;
 
-    uint8_t minDigits ;
-    uint8_t secDigits ;
+    uint16_t min = time / SEC2Min_Conversion_Factor ;
+    uint16_t sec = time % SEC2Min_Conversion_Factor ;
+    sprintf( buf, "%03d:%02d", min, sec ) ;
 
-    min = time / SEC2Min_Conversion_Factor ;
-    sec = time % SEC2Min_Conversion_Factor ;
-
-    minDigits = check_minute_digits( min ) ;
-    secDigits = check_second_digits( sec ) ;
-    
-    lcd_set_cursor( 0, 5 ) ;
-
-    switch ( minDigits ) {
-        case ONES : {
-            lcd_print_number( 0 ) ;
-            lcd_print_number( 0 ) ;
-            lcd_print_number( min ) ;
-        }
-        case TENS: {
-            lcd_print_number( 0 ) ;
-            lcd_print_number( min ) ;
-        }
-        case HUNDREDS : {
-            lcd_print_number( min ) ;
-        }
-        // Add default??
-    }   /* switch( minDigits ) */
-
-    lcd_print_char( ':' ) ;
-
-    switch ( secDigits ) {
-        case ONES : {
-            lcd_print_number( 0 ) ;
-            lcd_print_number( sec ) ;
-        }
-        case TENS: {
-            lcd_print_number( sec ) ;
-        }
-        // Add default??
-    }   /* switch( secDigits ) */
-
-    #ifdef later
-    lcd_print_number( min ) ;
-    lcd_print_char( ':' ) ;
-    lcd_print_number( sec ) ;
-    #endif /* later */
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-uint16_t check_minute_digits( uint16_t min ) {
-    typedef enum {
-        ONES ,
-        TENS ,
-        HUNDREDS
-    } Place_t ;
-
-    // Check placement of minutes
-    if ( min < 10 ) {
-        return ONES ;
-    }
-    else if ( min < 100 ) {
-        return TENS ;
-    }
-    else {
-        return HUNDREDS ;
-    }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-uint16_t check_second_digits( uint16_t sec ) {
-    typedef enum {
-        ONES ,
-        TENS ,
-    } Place_t ;
-
-    if ( sec < 10 ) {
-        return ONES ;
-    }
-    else {
-        return TENS ;
-    }
+    time_msg = ( String )( buf ) ;
+    lcd_set_cursor( 5, 0 ) ;
+    lcd_print_string( time_msg ) ;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
