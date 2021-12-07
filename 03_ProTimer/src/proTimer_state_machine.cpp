@@ -4,6 +4,7 @@ void proTimer_init( Protimer_t *mobj ) {
     mobj -> active_state    = IDLE ;
     mobj -> productive_time = 0 ;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) {
     switch ( mobj -> active_state ) {
@@ -27,6 +28,8 @@ Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) {
             break ;
     }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
     switch( e -> sig ) {
         case ENTRY : {
@@ -65,8 +68,7 @@ Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
 
     return EVENT_IGNORED ;
 }
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
     switch ( e -> sig ) {
@@ -95,6 +97,7 @@ Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
         }
         case START_PAUSE : {
             if ( mobj -> current_time >= ( 1*SEC2Min_Conversion_Factor ) ) {
+                mobj -> active_state = COUNTDOWN ;
                 return EVENT_TRANSITION ;   // Transition to COUNTDOWN
             }
             else {
@@ -102,31 +105,79 @@ Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
             }
         }
         case ABRT : {
+            mobj -> active_state = IDLE ;
             return EVENT_TRANSITION ;       // Go back to IDLE
         }
-
+        // Why not a default that returns ignored instead?
     }
     return EVENT_IGNORED ;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Event_Status_t protimer_state_handler_PAUSE( Protimer_t *mobj, Event_t *e ) {
-    return EVENT_IGNORED ;
+    switch ( e -> sig ) {
+        case ENTRY: {
+            display_message( "Paused" ) ;
+            return EVENT_HANDLED ;
+        }
+        case EXIT : {
+            display_clear() ;
+            return EVENT_HANDLED ;
+        }
+        case INC_TIME : {
+            mobj -> current_time += ( 1*SEC2Min_Conversion_Factor ) ;
+            return EVENT_TRANSITION ;
+        }
+        case DEC_TIME : {
+            if ( mobj -> current_time >= 1*SEC2Min_Conversion_Factor ) {
+                mobj -> current_time += ( 1*SEC2Min_Conversion_Factor ) ;
+                return EVENT_TRANSITION ;
+            }
+            else {
+                return EVENT_IGNORED ;
+            }
+        }
+        case START_PAUSE : {
+            mobj -> active_state = PAUSE ;
+            return EVENT_TRANSITION ;
+        }
+        case ABRT : {
+            mobj -> active_state = IDLE ;
+            return EVENT_TRANSITION ;
+        }
+        default : {
+            return EVENT_IGNORED ;
+        }
+    }
+    // return EVENT_IGNORED ;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Event_Status_t protimer_state_handler_COUNTDOWN( Protimer_t *mobj, Event_t *e ) {
     return EVENT_IGNORED ;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Event_Status_t protimer_state_handler_STAT( Protimer_t *mobj, Event_t *e ) {
     return EVENT_IGNORED ;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void display_time( int time ) {
 
 }
-extern void display_message( String message ) {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void display_message( String message ) {
 
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void display_clear( void ) {
 
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void do_beep( void ) {
 
 }
