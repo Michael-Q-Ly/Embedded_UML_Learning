@@ -2,7 +2,31 @@
 #define MAIN_H_
 
 #include <Arduino.h>
+
+/* Button Pins */
+byte const PIN_BUTTON1  = 2 ;
+byte const PIN_BUTTON2  = 3 ;
+byte const PIN_BUTTON3  = 4 ;
+/* Buzzer Pin */
+byte const PIN_BUZZER   = 12 ;
+/* LCD Pins */
+byte const PIN_LCD_RS   = 5 ;
+byte const PIN_LCD_RW   = 6 ;
+byte const PIN_LCD_EN   = 7 ;
+byte const PIN_LCD_D4   = 8 ;
+byte const PIN_LCD_D5   = 9 ;
+byte const PIN_LCD_D6   = 10 ;
+byte const PIN_LCD_D7   = 11 ;
+
+/* Button Encodings */
+#define BTN_PAD_VALUE_INC_TIME      B100
+#define BTN_PAD_VALUE_DEC_TIME      B010
+#define BTN_PAD_VALUE_ABRT          B110
+#define BTN_PAD_VALUE_SP            B001
+
+/* Constants */
 uint8_t const SEC2Min_Conversion_Factor = 60 ;
+
 
 /* Signals of the application */
 typedef enum {
