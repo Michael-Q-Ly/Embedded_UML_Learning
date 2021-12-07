@@ -1,12 +1,26 @@
 #include "main.h"
 
-void proTimer_init( Protimer_t *mobj ) {
+// Prototypes of state handlers
+static Event_Status_t protimer_state_handler_IDLE       ( Protimer_t *const mobj, Event_t const *const e ) ;        // Make mobj a constant pointer with changeable data,
+static Event_Status_t protimer_state_handler_TIME_SET   ( Protimer_t *const mobj, Event_t const *const e ) ;        // but make the event e a constant pointer with
+static Event_Status_t protimer_state_handler_PAUSE      ( Protimer_t *const mobj, Event_t const *const e ) ;        // constant data.
+static Event_Status_t protimer_state_handler_COUNTDOWN  ( Protimer_t *const mobj, Event_t const *const e ) ;
+static Event_Status_t protimer_state_handler_STAT       ( Protimer_t *const mobj, Event_t const *const e ) ;
+// Prototypes of helper functions
+static void display_time( uint32_t time ) ;              // TODO: Change parameters later
+static void display_message( String message ) ;     // TODO: Change parameters later
+static void display_clear( void ) ;
+static void do_beep( void ) ;
+
+
+
+void proTimer_init( Protimer_t *const mobj ) {
     mobj -> active_state    = IDLE ;
     mobj -> productive_time = 0 ;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) {
+Event_Status_t proTimer_state_machine( Protimer_t *const mobj, Event_t const *const e ) {
     switch ( mobj -> active_state ) {
         case IDLE : {
             return protimer_state_handler_IDLE( mobj, e ) ;
@@ -30,7 +44,7 @@ Event_Status_t protimer_state_machine( Protimer_t *mobj, Event_t *e ) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
+static Event_Status_t protimer_state_handler_IDLE( Protimer_t *const mobj, Event_t const *const e ) {
     switch( e -> sig ) {
         case ENTRY : {
             mobj -> current_time = 0 ;
@@ -64,13 +78,16 @@ Event_Status_t protimer_state_handler_IDLE( Protimer_t *mobj, Event_t *e ) {
                 return EVENT_IGNORED ;
             }
         }
+        default : {
+            return EVENT_IGNORED ;
+        }
     }   /* SWITCH */
 
-    return EVENT_IGNORED ;
+    // return EVENT_IGNORED ;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
+static Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *const mobj, Event_t const *const e ) {
     switch ( e -> sig ) {
         case ENTRY : {
             display_time( mobj -> current_time ) ;
@@ -114,7 +131,7 @@ Event_Status_t protimer_state_handler_TIME_SET( Protimer_t *mobj, Event_t *e ) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Event_Status_t protimer_state_handler_PAUSE( Protimer_t *mobj, Event_t *e ) {
+static Event_Status_t protimer_state_handler_PAUSE( Protimer_t *const mobj, Event_t const *const e ) {
     switch ( e -> sig ) {
         case ENTRY: {
             display_message( "Paused" ) ;
@@ -153,31 +170,83 @@ Event_Status_t protimer_state_handler_PAUSE( Protimer_t *mobj, Event_t *e ) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Event_Status_t protimer_state_handler_COUNTDOWN( Protimer_t *mobj, Event_t *e ) {
-    return EVENT_IGNORED ;
+static Event_Status_t protimer_state_handler_COUNTDOWN( Protimer_t *const mobj, Event_t const *const e ) {
+    switch ( e -> sig ) {
+        case EXIT : {
+            mobj -> productive_time += mobj -> elapsed_time ;
+            mobj -> elapsed_time = 0 ;
+            return EVENT_HANDLED ;
+        }
+        case TIME_TICK : {
+            // ss is a member of Protimer_Tick_Event_t, not Event_t ; typecast
+            if ( ((Protimer_Tick_Event_t *)( e )) -> ss == 10 ) {
+                --mobj -> current_time ;
+                ++mobj -> elapsed_time ;
+                display_time( mobj -> current_time ) ;
+                if ( ! ( mobj -> current_time ) ) {
+                    mobj -> active_state = IDLE ;
+                    return EVENT_TRANSITION ;
+                }
+                else {
+                    return EVENT_HANDLED ;
+                }
+            }
+        }
+        case START_PAUSE : {
+            mobj -> active_state = PAUSE ;
+            return EVENT_TRANSITION ;
+        }
+        case ABRT : {
+            mobj -> active_state = IDLE ;
+            return EVENT_TRANSITION ;
+        }
+        default: {
+            return EVENT_IGNORED ;
+        }
+    }   /* Switch */
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Event_Status_t protimer_state_handler_STAT( Protimer_t *mobj, Event_t *e ) {
-    return EVENT_IGNORED ;
+static Event_Status_t protimer_state_handler_STAT( Protimer_t *const mobj, Event_t const *const e ) {
+    switch( e -> sig ) {
+        case ENTRY : {
+            display_time( mobj -> productive_time ) ;
+            display_message( "Productive Time" ) ;
+            return EVENT_HANDLED ;
+        }
+        case EXIT : {
+            display_clear() ;
+            return EVENT_HANDLED ;
+        }
+        case TIME_TICK : {
+            if ( ((Protimer_Tick_Event_t *)( e )) -> ss == 10 ) {
+                mobj -> active_state = IDLE ;
+                return EVENT_TRANSITION ;
+            }
+            return EVENT_IGNORED ;
+        }
+        default : {
+            return EVENT_IGNORED ;
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void display_time( int time ) {
+static void display_time( uint32_t time ) {
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void display_message( String message ) {
+static void display_message( String message ) {
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void display_clear( void ) {
+static void display_clear( void ) {
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void do_beep( void ) {
+static void do_beep( void ) {
 
 }
