@@ -1,5 +1,4 @@
 #include "main.h"
-
 /* Main application object */
 static Protimer_t proTimer ;
 
@@ -11,8 +10,18 @@ typedef enum {
 
 static void proTimer_event_dispatcher( Protimer_t *const mobj, Event_t const *const e) ;
 static uint8_t process_button_pad_value( uint8_t btn_pad_value ) ;
-
+void display_init( void ) ;
 void setup() {
+    // Set up the serial monitor by setting the baud rate to 115200 bits per second
+    Serial.begin( BAUD_RATE ) ;
+    // Display initialization message
+    Serial.println( "Productive Timer Application" ) ;
+    Serial.println( "================================" ) ;
+    pinMode( PIN_BUTTON1, INPUT ) ;
+    pinMode( PIN_BUTTON2, INPUT ) ;
+    pinMode( PIN_BUTTON3, INPUT ) ;
+
+    display_init() ;
     proTimer_init( &proTimer ) ;
 }
 
@@ -139,4 +148,8 @@ static uint8_t process_button_pad_value( uint8_t btn_pad_value ) {
     }
 
     return 0 ;
+}
+
+void display_init( void ) {
+
 }

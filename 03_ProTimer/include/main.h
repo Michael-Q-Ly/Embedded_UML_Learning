@@ -1,7 +1,8 @@
 #ifndef MAIN_H_
 #define MAIN_H_
-
 #include <Arduino.h>
+
+#define BAUD_RATE      115200
 
 /* Button Pins */
 byte const PIN_BUTTON1  = 2 ;
