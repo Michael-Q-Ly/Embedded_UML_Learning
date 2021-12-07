@@ -3,6 +3,12 @@
 /* Main application object */
 static Protimer_t proTimer ;
 
+typedef enum {
+    NOT_PRESSED ,
+    BOUNCE , 
+    PRESSED
+} Button_State_t ;
+
 static void proTimer_event_dispatcher( Protimer_t *const mobj, Event_t const *const e) ;
 static uint8_t process_button_pad_value( uint8_t btn_pad_value ) ;
 
@@ -16,6 +22,10 @@ void loop() {
     uint8_t b3 ;
     uint8_t btn_pad_value ;
     Protimer_User_Event_t user_event ;
+    static uint32_t current_time ;
+    static Protimer_Tick_Event_t tick_event ;
+
+    current_time = millis() ;
 
     // 1. Read the button pad status
     b1 = digitalRead( PIN_BUTTON1 ) ;
@@ -45,7 +55,18 @@ void loop() {
     // 3. Send it to event dispatcher
     proTimer_event_dispatcher( &proTimer, &user_event.super ) ;
 
+    // 4. Dispatch the time tick event every 100ms
+    if ( millis() - current_time > 100 ) {      // Instead of using millis, you may also use a hardware timer interrupt
+        // 100mS have passed
+        current_time = millis() ;
+        tick_event.super.sig = TIME_TICK ;
+        if ( ++tick_event.ss > 10 ) {
+            tick_event.ss = 1 ;
+        }
+        proTimer_event_dispatcher( &proTimer, &tick_event.super) ;
+    }
     #ifdef later
+
     #endif /* later */
 }
 
@@ -78,5 +99,44 @@ static void proTimer_event_dispatcher( Protimer_t *const mobj, Event_t const *co
 }
 
 static uint8_t process_button_pad_value( uint8_t btn_pad_value ) {
-    return btn_pad_value ;
+    static Button_State_t btn_sm_state ;
+    static uint32_t current_time ;
+
+    btn_sm_state = NOT_PRESSED ;
+    current_time = millis() ;
+
+    switch ( btn_sm_state ) {
+        case NOT_PRESSED : {
+            if ( btn_pad_value ) {
+                btn_sm_state = BOUNCE ;
+                current_time = millis() ;
+            }
+            break ;
+        }
+        case BOUNCE : {
+            if ( millis() - current_time >= 50 ) {
+                // 50ms have passed
+                if ( btn_pad_value ) {
+                    btn_sm_state = PRESSED ;
+                    return btn_pad_value ;
+                }
+                else {
+                    btn_sm_state = NOT_PRESSED ;
+                }
+            }
+            break ;
+        }
+        case PRESSED : {
+            if ( ! ( btn_pad_value ) ) {
+                btn_sm_state = BOUNCE ;
+                current_time = millis() ;
+            }
+            break ;
+        }
+        default: {
+
+        }
+    }
+
+    return 0 ;
 }
