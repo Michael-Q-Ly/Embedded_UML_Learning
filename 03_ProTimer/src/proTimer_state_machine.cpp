@@ -7,12 +7,11 @@ static Event_Status_t protimer_state_handler_PAUSE      ( Protimer_t *const mobj
 static Event_Status_t protimer_state_handler_COUNTDOWN  ( Protimer_t *const mobj, Event_t const *const e ) ;
 static Event_Status_t protimer_state_handler_STAT       ( Protimer_t *const mobj, Event_t const *const e ) ;
 // Prototypes of helper functions
-static void display_time( uint32_t time ) ;              // TODO: Change parameters later
-static void display_message( String message ) ;     // TODO: Change parameters later
-static void display_clear( void ) ;
-static void do_beep( void ) ;
-
-
+static void display_time                                ( uint32_t time ) ;             // TODO: Change parameters later
+static void display_message                             ( String message ) ;            // TODO: Change parameters later
+static void display_clear                               ( void ) ;
+static void do_beep                                     ( void ) ;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void proTimer_init( Protimer_t *const mobj ) {
     mobj -> active_state    = IDLE ;
@@ -37,9 +36,8 @@ Event_Status_t proTimer_state_machine( Protimer_t *const mobj, Event_t const *co
         case STAT : {
             return protimer_state_handler_STAT( mobj, e ) ;   
         }
-        
         default :
-            break ;
+            return EVENT_IGNORED ;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +68,7 @@ static Event_Status_t protimer_state_handler_IDLE( Protimer_t *const mobj, Event
             return EVENT_TRANSITION ;
         }
         case TIME_TICK : {
-            if ( (( Protimer_Tick_Event_t * )( e )) -> ss == 5 ) {
+            if ( !( (( Protimer_Tick_Event_t * )( e )) -> ss == 5 ) ) {
                 do_beep() ;                 // TODO: Implement do_beep function
                 return EVENT_HANDLED ;
             }
@@ -179,7 +177,7 @@ static Event_Status_t protimer_state_handler_COUNTDOWN( Protimer_t *const mobj, 
         }
         case TIME_TICK : {
             // ss is a member of Protimer_Tick_Event_t, not Event_t ; typecast
-            if ( ((Protimer_Tick_Event_t *)( e )) -> ss == 10 ) {
+            if ( ! ( ((Protimer_Tick_Event_t *)( e )) -> ss % 10 ) ) {
                 --mobj -> current_time ;
                 ++mobj -> elapsed_time ;
                 display_time( mobj -> current_time ) ;
@@ -219,7 +217,7 @@ static Event_Status_t protimer_state_handler_STAT( Protimer_t *const mobj, Event
             return EVENT_HANDLED ;
         }
         case TIME_TICK : {
-            if ( ((Protimer_Tick_Event_t *)( e )) -> ss == 10 ) {
+            if ( ! ( ((Protimer_Tick_Event_t *)( e )) -> ss == 10 ) ) {
                 mobj -> active_state = IDLE ;
                 return EVENT_TRANSITION ;
             }
