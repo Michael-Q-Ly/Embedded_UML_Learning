@@ -1,30 +1,24 @@
 #include "main.h"
 #include "lcd.h"
-/* Main application object */
-static Protimer_t proTimer ;
 
-typedef enum {
-    NOT_PRESSED ,
-    BOUNCE , 
-    PRESSED
-} Button_State_t ;
+/*Main application object */
+static Protimer_t protimer;
 
-static void proTimer_event_dispatcher( Protimer_t *const mobj, Event_t const *const e) ;
-static uint8_t process_button_pad_value( uint8_t btn_pad_value ) ;
-static void display_init( void ) ;
+static void protimer_event_dispatcher   ( Protimer_t *const mobj, Event_t const *const e ) ;
+static uint8_t process_button_pad_value ( uint8_t btn_pad_value ) ;
+static void display_init                ( void ) ;
 
 void setup() {
-    // Set up the serial monitor by setting the baud rate to 115200 bits per second
+    // put your setup code here, to run once:
     Serial.begin( BAUD_RATE ) ;
-    // Display initialization message
-    Serial.println( "Productive Timer Application" ) ;
-    Serial.println( "================================" ) ;
+    Serial.println("Productive timer application");
+    Serial.println("===========================");
     pinMode( PIN_BUTTON1, INPUT ) ;
     pinMode( PIN_BUTTON2, INPUT ) ;
     pinMode( PIN_BUTTON3, INPUT ) ;
 
-    display_init() ;
-    proTimer_init( &proTimer ) ;
+    display_init();
+    proTimer_init(&protimer);
 }
 
 void loop() {
@@ -33,23 +27,25 @@ void loop() {
     uint8_t b3 ;
     uint8_t btn_pad_value ;
     Protimer_User_Event_t user_event ;
-    static uint32_t current_time ;
-    static Protimer_Tick_Event_t tick_event ;
-
-    current_time = millis() ;
+    static uint32_t current_time = millis() ;
+    static Protimer_Tick_Event_t tick_event;
 
     // 1. Read the button pad status
-    b1 = digitalRead( PIN_BUTTON1 ) ;
+    b1 = digitalRead( PIN_BUTTON1 ) ; 
     b2 = digitalRead( PIN_BUTTON2 ) ;
     b3 = digitalRead( PIN_BUTTON3 ) ;
-    // Bit-extension to get pad values for encoding
-    btn_pad_value = ( b1<<2 ) | ( b2<<1 ) | ( b3<<0 ) ;
 
-    // Software button debouncing
-    btn_pad_value = process_button_pad_value( btn_pad_value ) ;
-    // 2. Make an event
+    btn_pad_value = ( b1<<2 ) | ( b2<<1 )| ( b3 << 0 ) ;
+
+    // Software button de-bouncing 
+    btn_pad_value = process_button_pad_value( btn_pad_value );
+
+    //2. Make an event 
     if ( btn_pad_value ) {
-        if ( ! ( btn_pad_value % BTN_PAD_VALUE_INC_TIME ) ) {
+        if ( ! ( btn_pad_value % BTN_PAD_VALUE_ABRT ) ) {
+            user_event.super.sig = ABRT ;
+        }
+        else if ( ! ( btn_pad_value % BTN_PAD_VALUE_INC_TIME ) ) {
             user_event.super.sig = INC_TIME ;
         }
         else if ( ! ( btn_pad_value % BTN_PAD_VALUE_DEC_TIME ) ) {
@@ -58,106 +54,88 @@ void loop() {
         else if ( ! ( btn_pad_value % BTN_PAD_VALUE_SP ) ) {
             user_event.super.sig = START_PAUSE ;
         }
-        else if ( ! ( btn_pad_value % BTN_PAD_VALUE_ABRT ) ) {
-            user_event.super.sig = ABRT ;
-        }
+        //3. Send it to event dispatcher
+        protimer_event_dispatcher( &protimer, &user_event.super ) ;
     }
 
-    // 3. Send it to event dispatcher
-    proTimer_event_dispatcher( &proTimer, &user_event.super ) ;
-
-    // 4. Dispatch the time tick event every 100ms
-    if ( millis() - current_time > 100 ) {      // Instead of using millis, you may also use a hardware timer interrupt
-        // 100mS have passed
+    //4. Dispatch the time tick event for every 100ms
+    if ( millis() - current_time >= 100 ) {
+        // 100ms have passed
         current_time = millis() ;
         tick_event.super.sig = TIME_TICK ;
         if ( ++tick_event.ss > 10 ) {
             tick_event.ss = 1 ;
         }
-        proTimer_event_dispatcher( &proTimer, &tick_event.super) ;
+        protimer_event_dispatcher( &protimer,&tick_event.super ) ;
     }
-    #ifdef later
+} // end loop
 
-    #endif /* later */
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void proTimer_event_dispatcher( Protimer_t *const mobj, Event_t const *const e) {
-    Event_Status_t      status ;
-    Protimer_State_t    source ;
-    Protimer_State_t    target ;
-
+static void protimer_event_dispatcher( Protimer_t *const mobj,Event_t const *const e ) {
+    Event_Status_t status;
+    Protimer_State_t source;
+    Protimer_State_t target;
+    
     source = mobj -> active_state ;
     status = proTimer_state_machine( mobj, e ) ;
 
-    if ( status != EVENT_TRANSITION ) {
-        ;
-    }
-    else {
-        Event_t ee ;
+    if ( status == EVENT_TRANSITION ) {
+        Event_t exit_event ;
         target = mobj -> active_state ;
-
-        // 1. Run exit action for the source state
-        ee.sig = EXIT ;
+        // 1. Run the exit action for the source state
+        exit_event.sig = EXIT ;
         mobj -> active_state = source ;
-        proTimer_state_machine( mobj, &ee ) ;
+        proTimer_state_machine( mobj, &exit_event ) ;
+
         // 2. Run the entry action for the target state
-        ee.sig = ENTRY ;
+        exit_event.sig = ENTRY ;
         mobj -> active_state = target ;
-        proTimer_state_machine( mobj, &ee ) ;
+        proTimer_state_machine( mobj, &exit_event ) ;
     }
-}
+} 
+
 
 static uint8_t process_button_pad_value( uint8_t btn_pad_value ) {
-    static Button_State_t btn_sm_state ;
-    static uint32_t current_time ;
+    static Button_State_t btn_sm_state = NOT_PRESSED ;
+    static uint32_t current_time = millis() ;
 
-    btn_sm_state = NOT_PRESSED ;
-    current_time = millis() ;
-
-    switch ( btn_sm_state ) {
-        case NOT_PRESSED : {
+    switch( btn_sm_state ) {
+        case NOT_PRESSED: {
             if ( btn_pad_value ) {
                 btn_sm_state = BOUNCE ;
                 current_time = millis() ;
             }
             break ;
-        }
-        case BOUNCE : {
+        } // NOT_PRESSED
+        case BOUNCE: {
             if ( millis() - current_time >= 50 ) {
-                // 50ms have passed
+                // 50ms has passed 
                 if ( btn_pad_value ) {
                     btn_sm_state = PRESSED ;
                     return btn_pad_value ;
                 }
-                else {
+                else
                     btn_sm_state = NOT_PRESSED ;
-                }
             }
             break ;
-        }
-        case PRESSED : {
-            if ( ! ( btn_pad_value ) ) {
+        } // BOUNCE
+        case PRESSED: {
+            if ( !btn_pad_value ) {
                 btn_sm_state = BOUNCE ;
                 current_time = millis() ;
             }
             break ;
-        }
-        default: {
+        } // PRESSED
+    } // switch
 
-        }
-    }
-
-    return 0 ;
+    return 0;
 }
 
-/* Initialize the 1602 LCD screen */
-static void display_init( void ) {
-    lcd_begin( 16, 2 ) ;
-    lcd_clear() ;
-    lcd_move_cursor_L_to_R() ;
-    lcd_set_cursor( 0, 0 ) ;
-    lcd_no_auto_scroll() ;
-    lcd_cursor_off() ;
+static void display_init(void) {
+    lcd_begin(16,2);
+    lcd_clear();
+    lcd_move_cursor_L_to_R();
+    lcd_set_cursor(0,0);
+    lcd_no_auto_scroll();
+    lcd_cursor_off();
 }

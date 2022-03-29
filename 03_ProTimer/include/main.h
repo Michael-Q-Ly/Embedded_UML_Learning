@@ -21,14 +21,20 @@ byte const PIN_LCD_D6   = 10 ;
 byte const PIN_LCD_D7   = 11 ;
 
 /* Button Encodings */
-#define BTN_PAD_VALUE_INC_TIME      B100
-#define BTN_PAD_VALUE_DEC_TIME      B010
-#define BTN_PAD_VALUE_ABRT          B110
-#define BTN_PAD_VALUE_SP            B001
+#define BTN_PAD_VALUE_DEC_TIME      B010               // 2
+#define BTN_PAD_VALUE_INC_TIME      B100               // 4
+#define BTN_PAD_VALUE_ABRT          B110               // 6
+#define BTN_PAD_VALUE_SP            B001               // 1
 
 /* Constants */
 uint8_t const SEC2Min_Conversion_Factor = 60 ;
 
+/* Button state */
+typedef enum {
+    NOT_PRESSED ,
+    BOUNCE , 
+    PRESSED
+} Button_State_t ;
 
 /* Signals of the application */
 typedef enum {
@@ -50,6 +56,7 @@ typedef enum {
     PAUSE ,
     STAT
 } Protimer_State_t ;
+
 
 /* Main application structure */
 typedef struct {

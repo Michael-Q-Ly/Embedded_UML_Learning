@@ -6,7 +6,7 @@ extern void lcd_clear                   ( void ) ;
 extern void lcd_print_char              ( char c ) ;
 extern void lcd_scroll_left             ( void ) ;
 extern void lcd_scroll_right            ( void ) ;
-extern void lcd_set_cursor              ( int r, int c ) ;
+extern void lcd_set_cursor              ( int c, int r ) ;
 extern void lcd_no_auto_scroll          ( void ) ;
 extern void lcd_begin                   ( uint8_t cols, uint8_t rows ) ;
 extern void lcd_move_cursor_R_to_L      ( void ) ;

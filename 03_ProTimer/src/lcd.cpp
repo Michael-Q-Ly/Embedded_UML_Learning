@@ -23,8 +23,8 @@ void lcd_scroll_left( void ) {
 void lcd_scroll_right( void ) {
     lcd.scrollDisplayRight() ;
 }
-void lcd_set_cursor( int r, int c ) {
-    lcd.setCursor( r, c ) ;
+void lcd_set_cursor( int c, int r ) {
+    lcd.setCursor( c, r ) ;
 }
 void lcd_no_auto_scroll( void ) {
     lcd.noAutoscroll() ;
